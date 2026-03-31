@@ -1,6 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <title>Explainify</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+  <style>
+    body { background:#0a0a0f; color:white; font-family:sans-serif; }
+  </style>
+</head>
+
+<body>
+
+<div class="topbar">
+  <span class="topbar-title">Explainify</span>
+
+  <div class="topbar-actions">
+    <button class="icon-btn" onclick="logout()" title="Logout">
+      ⎋
+    </button>
+  </div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAM8nqP35YuOIpjc1enOQDX4FVWxUOutCU",
+  authDomain: "explainify-ai.firebaseapp.com",
+  projectId: "explainify-ai",
+  storageBucket: "explainify-ai.firebasestorage.app",
+  messagingSenderId: "1007832268787",
+  appId: "1:1007832268787:web:0ae0ee7a0f82b5d802dc86"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
+/* Hide page until auth loads */
+document.body.style.display = "none";
+
+/* Auth check */
+auth.onAuthStateChanged(user => {
+  console.log("INDEX USER:", user);
+
+  if (user) {
+    document.body.style.display = "block";
+  } else {
+    window.location.replace("/login");
+  }
+});
+
+/* Logout */
+function logout() {
+  auth.signOut().then(() => {
+    window.location.replace("/login");
+  });
+}
+</script>
+
+</body>
+</html>
+</script>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Explainify — AI Assistant</title>
@@ -730,6 +797,10 @@
   }
 
   async function sendMessage() {
+    if (!currentUser) {
+  alert("Please login first");
+  return;
+}
     if (isStreaming) return;
     const input = textarea.value.trim();
     if (!input) return;
@@ -752,9 +823,13 @@
     document.getElementById('sendBtn').disabled = true;
 
     try {
+      const token = await currentUser.getIdToken();
       const response = await fetch('/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+  'Content-Type': 'application/json',
+  'Authorization': 'Bearer ' + token
+},
         body: JSON.stringify({ messages: conversationHistory })
       });
 
@@ -886,3 +961,4 @@
 </script>
 </body>
 </html>
+
