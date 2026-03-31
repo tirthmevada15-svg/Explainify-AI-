@@ -20,54 +20,32 @@
       background:#0a0a0f;
       color:white;
       font-family:'Syne', sans-serif;
-      overflow:hidden;
-    }
-
-    body::before {
-      content:'';
-      position:fixed;
-      width:500px;
-      height:500px;
-      background:radial-gradient(circle, rgba(0,229,255,0.15), transparent);
-      top:-100px;
-      left:-100px;
-    }
-
-    body::after {
-      content:'';
-      position:fixed;
-      width:500px;
-      height:500px;
-      background:radial-gradient(circle, rgba(124,58,237,0.15), transparent);
-      bottom:-100px;
-      right:-100px;
     }
 
     .login-box {
       width:340px;
       padding:40px 30px;
-      background:rgba(17,17,24,0.9);
+      background:#111;
       border:1px solid #2a2a38;
       border-radius:16px;
       text-align:center;
-      backdrop-filter:blur(12px);
-      box-shadow:0 0 40px rgba(0,229,255,0.08);
     }
 
     .logo {
-      font-size:22px;
-      font-weight:800;
-      margin-bottom:10px;
-      background:linear-gradient(90deg,#00e5ff,#a78bfa);
-      background-clip:text;
-      -webkit-background-clip:text;
-      -webkit-text-fill-color:transparent;
+  background: linear-gradient(90deg,#00e5ff,#a78bfa);
+
+  /* Standard + Webkit */
+  background-clip: text;
+  -webkit-background-clip: text;
+
+  -webkit-text-fill-color: transparent;
+
     }
 
     .subtitle {
       font-size:13px;
-      color:#666680;
-      margin-bottom:30px;
+      color:#666;
+      margin-bottom:20px;
     }
 
     .google-btn {
@@ -78,44 +56,50 @@
       background:linear-gradient(135deg,#00e5ff,#7c3aed);
       color:#000;
       font-weight:700;
-      font-size:15px;
       cursor:pointer;
-      transition:0.2s;
+      margin-bottom:15px;
     }
 
-    .google-btn:hover {
-      transform:scale(1.03);
-      box-shadow:0 0 20px rgba(0,229,255,0.4);
+    .phone-box {
+      background-clip:text;
+      display:flex;
+      flex-direction:column;
+      gap:10px;
+      margin-top:10px;
     }
 
-    .footer {
-      margin-top:20px;
-      font-size:11px;
-      color:#666680;
+    .input {
+      padding:12px;
+      border-radius:10px;
+      border:1px solid #2a2a38;
+      background:#111;
+      color:white;
     }
-    .open-btn {
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  border-radius:10px;
-  border:1px solid #2a2a38;
-  background:#222;
-  color:#aaa;
-  font-size:13px;
-  cursor:pointer;
-}
 
-.notice {
-  font-size:12px;
-  color:#facc15;
-  background:rgba(250,204,21,0.08);
-  border:1px solid rgba(250,204,21,0.2);
-  padding:10px;
-  border-radius:10px;
-  margin-bottom:15px;
-  line-height:1.5;
-}
+    .primary-btn {
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      background:#00e5ff;
+      color:#000;
+      font-weight:bold;
+      cursor:pointer;
+    }
 
+    .secondary-btn {
+      padding:10px;
+      border:none;
+      border-radius:10px;
+      background:#222;
+      color:#aaa;
+      cursor:pointer;
+    }
+
+    .otp-section {
+      display:none;
+      flex-direction:column;
+      gap:10px;
+    }
   </style>
 </head>
 
@@ -123,20 +107,20 @@
 
 <div class="login-box">
   <div class="logo">⚡ Explainify</div>
-  <div class="subtitle">Continue with your Google account</div>
+  <div class="subtitle">Login to continue</div>
 
-  <button class="google-btn" onclick="googleLogin()">
-    Continue with Google
-  </button>
-<button class="open-btn" onclick="openBrowser()">
-  Open in Browser
-</button>
-<div class="notice">
-  ⚠️ This login only works in Chrome or Safari.<br>
-  If you opened this in Instagram or WhatsApp,<br>
-  please tap below and open in browser.
-</div>
-  <div class="footer">Secure login powered by Firebase</div>
+  <button class="google-btn" onclick="googleLogin()">Continue with Google</button>
+
+  <div class="phone-box">
+    <input id="phone" placeholder="+91XXXXXXXXXX" class="input"/>
+    <div id="recaptcha-container"></div>
+    <button class="primary-btn" onclick="sendOTP()">Send OTP</button>
+
+    <div class="otp-section" id="otpSection">
+      <input id="otp" placeholder="Enter OTP" class="input"/>
+      <button class="secondary-btn" onclick="verifyOTP()">Verify OTP</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -148,43 +132,24 @@ const firebaseConfig = {
   messagingSenderId: "1007832268787",
   appId: "1:1007832268787:web:0ae0ee7a0f82b5d802dc86"
 };
-function openBrowser() {
-  const url = window.location.href;
 
-  // Try to force external browser
-  window.open(url, "_blank");
-}
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
-/* Hide until ready */
-document.body.style.display = "none";
+let confirmationResult;
 
-/* Auth state */
-auth.onAuthStateChanged(user => {
-  if (user) {
-    window.location.replace("/");
-  } else {
-    document.body.style.display = "flex";
-  }
-});
+/* Setup reCAPTCHA */
+window.onload = function () {
+  window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier(
+    'recaptcha-container',
+    { size: 'normal' }
+  );
+};
 
-/* Google login (mobile + desktop safe) */
+/* Google Login */
 function googleLogin() {
   const provider = new firebase.auth.GoogleAuthProvider();
-
-  const ua = navigator.userAgent;
-
-  const isInApp =
-    /FBAN|FBAV|Instagram|Line|WhatsApp|Messenger/i.test(ua);
-
-  const isMobile =
-    /Android|iPhone|iPad|iPod/i.test(ua);
-
-  if (isInApp) {
-    alert("Please open this site in Chrome or Safari to login.");
-    return;
-  }
+  const isMobile = /Android|iPhone/i.test(navigator.userAgent);
 
   if (isMobile) {
     auth.signInWithRedirect(provider);
@@ -193,6 +158,40 @@ function googleLogin() {
       .then(() => window.location.replace("/"))
       .catch(err => alert(err.message));
   }
+}
+
+/* Handle redirect */
+auth.getRedirectResult().then(result => {
+  if (result.user) {
+    window.location.replace("/");
+  }
+});
+
+/* Send OTP */
+function sendOTP() {
+  const phone = document.getElementById("phone").value;
+
+  if (!phone.startsWith("+")) {
+    alert("Use +91XXXXXXXXXX format");
+    return;
+  }
+
+  auth.signInWithPhoneNumber(phone, window.recaptchaVerifier)
+    .then(result => {
+      confirmationResult = result;
+      alert("OTP sent");
+      document.getElementById("otpSection").style.display = "flex";
+    })
+    .catch(err => alert(err.message));
+}
+
+/* Verify OTP */
+function verifyOTP() {
+  const code = document.getElementById("otp").value;
+
+  confirmationResult.confirm(code)
+    .then(() => window.location.replace("/"))
+    .catch(() => alert("Invalid OTP"));
 }
 </script>
 
