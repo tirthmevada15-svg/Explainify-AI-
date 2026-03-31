@@ -23,7 +23,6 @@
       overflow:hidden;
     }
 
-    /* Background glow */
     body::before {
       content:'';
       position:fixed;
@@ -45,8 +44,6 @@
     }
 
     .login-box {
-      position:relative;
-      z-index:2;
       width:340px;
       padding:40px 30px;
       background:rgba(17,17,24,0.9);
@@ -73,19 +70,20 @@
       margin-bottom:30px;
     }
 
-    .login-btn {
+    .google-btn {
       width:100%;
-      padding:12px;
+      padding:14px;
       border:none;
-      border-radius:10px;
+      border-radius:12px;
       background:linear-gradient(135deg,#00e5ff,#7c3aed);
       color:#000;
       font-weight:700;
+      font-size:15px;
       cursor:pointer;
-      transition:all 0.2s;
+      transition:0.2s;
     }
 
-    .login-btn:hover {
+    .google-btn:hover {
       transform:scale(1.03);
       box-shadow:0 0 20px rgba(0,229,255,0.4);
     }
@@ -102,9 +100,9 @@
 
 <div class="login-box">
   <div class="logo">⚡ Explainify</div>
-  <div class="subtitle">AI-powered assistant. Fast. Smart. Free.</div>
+  <div class="subtitle">Continue with your Google account</div>
 
-  <button class="login-btn" onclick="login()">
+  <button class="google-btn" onclick="googleLogin()">
     Continue with Google
   </button>
 
@@ -124,9 +122,10 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
-/* Hide until auth ready */
+/* Hide until ready */
 document.body.style.display = "none";
 
+/* Auth state */
 auth.onAuthStateChanged(user => {
   if (user) {
     window.location.replace("/");
@@ -135,13 +134,29 @@ auth.onAuthStateChanged(user => {
   }
 });
 
-function login() {
+/* Google login (mobile + desktop safe) */
+function googleLogin() {
   const provider = new firebase.auth.GoogleAuthProvider();
 
-  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-    .then(() => auth.signInWithPopup(provider))
-    .catch(err => alert(err.message));
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  if (isMobile) {
+    auth.signInWithRedirect(provider);
+  } else {
+    auth.signInWithPopup(provider)
+      .then(() => window.location.replace("/"))
+      .catch(err => alert(err.message));
+  }
 }
+
+/* Handle redirect (mobile) */
+auth.getRedirectResult()
+  .then(result => {
+    if (result.user) {
+      window.location.replace("/");
+    }
+  })
+  .catch(err => console.log(err));
 </script>
 
 </body>
