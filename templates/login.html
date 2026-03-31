@@ -93,6 +93,29 @@
       font-size:11px;
       color:#666680;
     }
+    .open-btn {
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border-radius:10px;
+  border:1px solid #2a2a38;
+  background:#222;
+  color:#aaa;
+  font-size:13px;
+  cursor:pointer;
+}
+
+.notice {
+  font-size:12px;
+  color:#facc15;
+  background:rgba(250,204,21,0.08);
+  border:1px solid rgba(250,204,21,0.2);
+  padding:10px;
+  border-radius:10px;
+  margin-bottom:15px;
+  line-height:1.5;
+}
+
   </style>
 </head>
 
@@ -105,7 +128,14 @@
   <button class="google-btn" onclick="googleLogin()">
     Continue with Google
   </button>
-
+<button class="open-btn" onclick="openBrowser()">
+  Open in Browser
+</button>
+<div class="notice">
+  ⚠️ This login only works in Chrome or Safari.<br>
+  If you opened this in Instagram or WhatsApp,<br>
+  please tap below and open in browser.
+</div>
   <div class="footer">Secure login powered by Firebase</div>
 </div>
 
@@ -118,7 +148,12 @@ const firebaseConfig = {
   messagingSenderId: "1007832268787",
   appId: "1:1007832268787:web:0ae0ee7a0f82b5d802dc86"
 };
+function openBrowser() {
+  const url = window.location.href;
 
+  // Try to force external browser
+  window.open(url, "_blank");
+}
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 
@@ -138,7 +173,18 @@ auth.onAuthStateChanged(user => {
 function googleLogin() {
   const provider = new firebase.auth.GoogleAuthProvider();
 
-  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const ua = navigator.userAgent;
+
+  const isInApp =
+    /FBAN|FBAV|Instagram|Line|WhatsApp|Messenger/i.test(ua);
+
+  const isMobile =
+    /Android|iPhone|iPad|iPod/i.test(ua);
+
+  if (isInApp) {
+    alert("Please open this site in Chrome or Safari to login.");
+    return;
+  }
 
   if (isMobile) {
     auth.signInWithRedirect(provider);
@@ -148,15 +194,6 @@ function googleLogin() {
       .catch(err => alert(err.message));
   }
 }
-
-/* Handle redirect (mobile) */
-auth.getRedirectResult()
-  .then(result => {
-    if (result.user) {
-      window.location.replace("/");
-    }
-  })
-  .catch(err => console.log(err));
 </script>
 
 </body>
