@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Login - Explainify</title>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      height:100vh;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      background:#0a0a0f;
+      color:white;
+      font-family:'Syne', sans-serif;
+      overflow:hidden;
+    }
+
+    /* Background glow */
+    body::before {
+      content:'';
+      position:fixed;
+      width:500px;
+      height:500px;
+      background:radial-gradient(circle, rgba(0,229,255,0.15), transparent);
+      top:-100px;
+      left:-100px;
+    }
+
+    body::after {
+      content:'';
+      position:fixed;
+      width:500px;
+      height:500px;
+      background:radial-gradient(circle, rgba(124,58,237,0.15), transparent);
+      bottom:-100px;
+      right:-100px;
+    }
+
+    .login-box {
+      position:relative;
+      z-index:2;
+      width:340px;
+      padding:40px 30px;
+      background:rgba(17,17,24,0.9);
+      border:1px solid #2a2a38;
+      border-radius:16px;
+      text-align:center;
+      backdrop-filter:blur(12px);
+      box-shadow:0 0 40px rgba(0,229,255,0.08);
+    }
+
+    .logo {
+      font-size:22px;
+      font-weight:800;
+      margin-bottom:10px;
+      background:linear-gradient(90deg,#00e5ff,#a78bfa);
+      background-clip:text;
+      -webkit-background-clip:text;
+      -webkit-text-fill-color:transparent;
+    }
+
+    .subtitle {
+      font-size:13px;
+      color:#666680;
+      margin-bottom:30px;
+    }
+
+    .login-btn {
+      width:100%;
+      padding:12px;
+      border:none;
+      border-radius:10px;
+      background:linear-gradient(135deg,#00e5ff,#7c3aed);
+      color:#000;
+      font-weight:700;
+      cursor:pointer;
+      transition:all 0.2s;
+    }
+
+    .login-btn:hover {
+      transform:scale(1.03);
+      box-shadow:0 0 20px rgba(0,229,255,0.4);
+    }
+
+    .footer {
+      margin-top:20px;
+      font-size:11px;
+      color:#666680;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="login-box">
+  <div class="logo">⚡ Explainify</div>
+  <div class="subtitle">AI-powered assistant. Fast. Smart. Free.</div>
+
+  <button class="login-btn" onclick="login()">
+    Continue with Google
+  </button>
+
+  <div class="footer">Secure login powered by Firebase</div>
+</div>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyAM8nqP35YuOIpjc1enOQDX4FVWxUOutCU",
+  authDomain: "explainify-ai.firebaseapp.com",
+  projectId: "explainify-ai",
+  storageBucket: "explainify-ai.firebasestorage.app",
+  messagingSenderId: "1007832268787",
+  appId: "1:1007832268787:web:0ae0ee7a0f82b5d802dc86"
+};
+
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+
+/* Hide until auth ready */
+document.body.style.display = "none";
+
+auth.onAuthStateChanged(user => {
+  if (user) {
+    window.location.replace("/");
+  } else {
+    document.body.style.display = "flex";
+  }
+});
+
+function login() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+
+  auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+    .then(() => auth.signInWithPopup(provider))
+    .catch(err => alert(err.message));
+}
+</script>
+
+</body>
+</html>
